@@ -27,11 +27,10 @@ public class KafkaConsumer {
     private String topic; 
 	private int workerCountPerPartition = 5; 
     private MessageExecutor<?> executor;
-    private int partitionNum;
     
     private ExecutorService threadPool; 
     private ConsumerConnector connector; 
-    private Charset charset = Charset.forName("utf8"); 
+    private ConsumerZookeeper consumerZookeeper;
  
     public KafkaConsumer() {} 
  
@@ -47,10 +46,10 @@ public class KafkaConsumer {
 		connector = Consumer.createJavaConsumerConnector(config);
 		
 		Map<String, Integer> topics = new HashMap<String, Integer>();
-		topics.put(topic, 1);
+		topics.put(topic, consumerZookeeper.partitiomMap.get(topic).size());
 		Map<String, List<KafkaStream<byte[], byte[]>>> streams = connector.createMessageStreams(topics);
 		List<KafkaStream<byte[], byte[]>> partitions = streams.get(topic);
-		threadPool = Executors.newFixedThreadPool(partitionNum * workerCountPerPartition);
+		threadPool = Executors.newFixedThreadPool(consumerZookeeper.partitiomMap.get(topic).size() * workerCountPerPartition);
 		
 		for (KafkaStream<byte[], byte[]> partition : partitions) {
 			threadPool.execute(new MessageRunner(partition));
@@ -64,8 +63,6 @@ public class KafkaConsumer {
             this.partition = partition; 
         } 
  
-        // TODO 线程消费
-        // 一个线程如果
         public void run() { 
             ConsumerIterator<byte[], byte[]> it = partition.iterator(); 
             while (it.hasNext()) {

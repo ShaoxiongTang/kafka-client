@@ -4,10 +4,8 @@ import org.I0Itec.zkclient.ZkClient;
 import org.I0Itec.zkclient.exception.ZkNoNodeException;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.data.Stat;
-
-import com.mls.kafka.watch.WatchDemo;
+import org.springframework.util.StringUtils;
 
 /**
  * @author shaoxiongtang
@@ -15,6 +13,9 @@ import com.mls.kafka.watch.WatchDemo;
  */
 public class ZkUtils {
 	private static Log logger = LogFactory.getLog(ZkUtils.class);
+	
+	private static String TOPIC_PATH = "/brokers/topics/%s/partitions";
+	
 
 	/**
 	 * Create an ephemeral node with the given path and data. Create parents if
@@ -62,7 +63,7 @@ public class ZkUtils {
     }
 	
 	
-	public String readData(ZkClient client,String path){
+	public static String readData(ZkClient client,String path){
 		String data = null;
 		try {
 			data = String.valueOf(client.readData(path, true));
@@ -72,21 +73,29 @@ public class ZkUtils {
 		}
 		return data;
 	}
+	
+	public static int countPartitions(ZkClient client, String topic) {
+		if (StringUtils.isEmpty(topic)){
+			throw new RuntimeException("topic to count partitions is blank!");
+		}
+		return client.countChildren(String.format(TOPIC_PATH, topic));
+	}
 
 
 	public static void main(String[] args) {
 		ZkClient client = new ZkClient("localhost:2181", 2000);
 		try {
 			//int  i = 0;
-			client.subscribeChildChanges("/brokers/ids", new WatchDemo());
+			System.out.println(countPartitions(client, "test5"));
+			//client.subscribeChildChanges("/controller", new WatchDemo());
 			//createEphemeralPath(client, "/brokers/ids/4", data);
-			client.createEphemeral("/brokers/ids/4");
+			/*client.createEphemeral("/brokers/ids/4");
 			Thread.sleep(2000);
 			System.out.println(client.getChildren("/brokers/ids"));
 			
-			client.delete("/brokers/ids/4");
+			client.delete("/brokers/ids/2");
 			Thread.sleep(2000);
-			System.out.println(client.getChildren("/brokers/ids"));
+			System.out.println(client.getChildren("/brokers/ids"));*/
 			
 			
 			/*client.watchForData("/brokers/topics/test5");

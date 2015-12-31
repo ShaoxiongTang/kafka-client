@@ -1,4 +1,4 @@
-package com.mls.middleware.kafka;
+package com.mls.kafka;
 
 import junit.framework.Test;
 import junit.framework.TestCase;

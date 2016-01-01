@@ -6,7 +6,7 @@ import java.util.List;
  * @author shaoxiongtang
  * @date 2015年12月17日
  */
-public interface KafkaProducer<T> {
+public interface MessageProducer<T> {
 
 	/**
 	 * 
@@ -32,4 +32,10 @@ public interface KafkaProducer<T> {
 	 *            消息
 	 */
 	// public void send(String topic, K key, List<V> datas);
+	
+	/**
+	 * 发布topic
+	 * @param topic
+	 */
+	public void publishTopic(String topic);
 }

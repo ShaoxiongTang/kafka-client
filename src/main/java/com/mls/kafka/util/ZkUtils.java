@@ -1,5 +1,7 @@
 package com.mls.kafka.util;
 
+import javax.swing.LookAndFeel;
+
 import org.I0Itec.zkclient.ZkClient;
 import org.I0Itec.zkclient.exception.ZkNoNodeException;
 import org.apache.commons.logging.Log;
@@ -16,6 +18,30 @@ public class ZkUtils {
 	
 	private static String TOPIC_PATH = "/brokers/topics/%s/partitions";
 	
+	/**
+	 * 创建zkclient
+	 * @param config
+	 * @return
+	 */
+	public static ZkClient createClient(ZkConfig config){
+		return new ZkClient(config.connectStr, config.sessionTimeout, config.connectionTimeout);
+	}
+	
+	/**
+	 * 节点是否存在
+	 * @param client
+	 * @param path
+	 * @return
+	 * @throws Exception
+	 */
+	public static Boolean isExists(ZkClient client, String path) throws Exception{
+		try {
+			return client.exists(path);
+		} catch (Exception e) {
+			logger.error("check path[" + path + "] error!", e);
+			throw e;
+		}
+	}
 
 	/**
 	 * Create an ephemeral node with the given path and data. Create parents if
@@ -107,33 +133,10 @@ public class ZkUtils {
 	}
 
 	public static class ZkConfig {
-		private String rootPath;
-		private String connectStr;
-		private int sessionTimeout = 1000;
-
-		public String getRootPath() {
-			return rootPath;
-		}
-
-		public void setRootPath(String rootPath) {
-			this.rootPath = rootPath;
-		}
-
-		public String getConnectStr() {
-			return connectStr;
-		}
-
-		public void setConnectStr(String connectStr) {
-			this.connectStr = connectStr;
-		}
-
-		public int getSessionTimeout() {
-			return sessionTimeout;
-		}
-
-		public void setSessionTimeout(int sessionTimeout) {
-			this.sessionTimeout = sessionTimeout;
-		}
+		public String rootPath;
+		public String connectStr;
+		public int sessionTimeout = 10000;
+		public int connectionTimeout = 2000;
 
 		public ZkConfig(String rootPath, String connectStr, int sessionTimeout) {
 			super();

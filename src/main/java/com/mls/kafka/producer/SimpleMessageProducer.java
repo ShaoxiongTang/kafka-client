@@ -2,39 +2,47 @@ package com.mls.kafka.producer;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import kafka.javaapi.producer.Producer;
 import kafka.producer.KeyedMessage;
+import kafka.producer.Partitioner;
+import kafka.serializer.StringDecoder;
+import kafka.utils.VerifiableProperties;
 
-public class SimpleMessageProducer<T> implements MessageProducer<T> {
+public class SimpleMessageProducer<K,V> implements MessageProducer<K,V> {
 	public ProducerZookeeper producerZookeeper;
 	public String topic;
-	public AbstractPartitioner<T> partitioner;
-	private Producer<String, T> innerProducer;
+	public Partitioner<K> partitioner;
+	private Producer<K, V> innerProducer;
+	protected StringDecoder decoder = new StringDecoder(new VerifiableProperties());
 
-	public SimpleMessageProducer(String topic) {
+	public SimpleMessageProducer(String topic, Partitioner<K> partitioner, ProducerZookeeper producerZookeeper) {
 		this.topic = topic;
+		this.partitioner = partitioner;
+		this.producerZookeeper = producerZookeeper;
+		this.innerProducer = new Producer<K, V>(producerZookeeper.buildProducerConfig(partitioner));
 	}
 
-	public void send(String topicName, T messageObj) {
-		if (topicName == null || messageObj == null) {
+	public void send(K key, V message) {
+		if (topic == null || message == null) {
 			return;
 		}
-		KeyedMessage<String, T> km = new KeyedMessage<String, T>(topicName, messageObj);
+		KeyedMessage<K, V> km = new KeyedMessage<K, V>(topic, key, message);
 		innerProducer.send(km);
 	}
 
-	public void send(String topicName, List<T> messages) {
-		if (topicName == null || messages == null) {
+	public void send(String topic, K key, List<V> messages) {
+		if (topic == null || messages == null) {
 			return;
 		}
 		if (messages.isEmpty()) {
 			return;
 		}
-		List<KeyedMessage<String, T>> kms = new ArrayList<KeyedMessage<String, T>>();
+		List<KeyedMessage<K,V>> kms = new ArrayList<KeyedMessage<K, V>>();
 		int i = 0;
-		for (T entry : messages) {
-			KeyedMessage<String, T> km = new KeyedMessage<String, T>(topicName, entry);
+		for (V entry : messages) {
+			KeyedMessage<K, V> km = new KeyedMessage<K, V>(topic, key, entry);
 			kms.add(km);
 			i++;
 			if (i % 20 == 0) {
@@ -47,7 +55,6 @@ public class SimpleMessageProducer<T> implements MessageProducer<T> {
 			innerProducer.send(kms);
 		}
 	}
-	
 
 	public void publishTopic(String topic) {
 		try {
@@ -58,5 +65,9 @@ public class SimpleMessageProducer<T> implements MessageProducer<T> {
 		} catch (Exception e) {
 
 		}
+	}
+
+	public void send(String topic, Map<K, V> keyedMessage) {
+		// TODO Auto-generated method stub
 	}
 }

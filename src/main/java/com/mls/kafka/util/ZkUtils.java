@@ -1,6 +1,7 @@
 package com.mls.kafka.util;
 
-import javax.swing.LookAndFeel;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.I0Itec.zkclient.ZkClient;
 import org.I0Itec.zkclient.exception.ZkNoNodeException;
@@ -8,6 +9,8 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.zookeeper.data.Stat;
 import org.springframework.util.StringUtils;
+
+import com.mls.kafka.support.PartitionInfo;
 
 /**
  * @author shaoxiongtang
@@ -107,12 +110,27 @@ public class ZkUtils {
 		return client.countChildren(String.format(TOPIC_PATH, topic));
 	}
 
+	public static List<PartitionInfo> fetchPartitionInfo(ZkClient client, String topic){
+		List infos = new ArrayList();
+		String partitionPathFormat ="/brokers/topics/%s/partitions";
+		List<String> partitionList = client.getChildren(String.format(partitionPathFormat,topic));
+		if (partitionList == null || partitionList.size() == 0){
+			throw new RuntimeException("topic " + topic + "has not partition!");
+		}
+		System.out.println(partitionList);
+		for (String partition : partitionList){
+			System.out.println(client.readData("/brokers/topics/" + topic + "/partitions/" + partition + "/state"));
+		}
+		return infos;
+	}
 
 	public static void main(String[] args) {
 		ZkClient client = new ZkClient("localhost:2181", 2000);
 		try {
 			//int  i = 0;
-			System.out.println(countPartitions(client, "test5"));
+			//System.out.println(fetchPartitionInfo(client,"merchantaccount"));
+			client.createPersistent("/contentnode","this is task");
+			System.out.println(client.readData("/contentnode"));
 			//client.subscribeChildChanges("/controller", new WatchDemo());
 			//createEphemeralPath(client, "/brokers/ids/4", data);
 			/*client.createEphemeral("/brokers/ids/4");
@@ -137,6 +155,7 @@ public class ZkUtils {
 		public String connectStr;
 		public int sessionTimeout = 10000;
 		public int connectionTimeout = 2000;
+		public long synctime_ms = 200;
 
 		public ZkConfig(String rootPath, String connectStr, int sessionTimeout) {
 			super();

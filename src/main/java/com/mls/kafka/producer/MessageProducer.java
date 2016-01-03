@@ -1,40 +1,42 @@
 package com.mls.kafka.producer;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author shaoxiongtang
  * @date 2015年12月17日
  */
-public interface MessageProducer<T> {
+public interface MessageProducer<K, V> {
+
 
 	/**
 	 * 
 	 * @param topic
 	 * @param data
 	 */
-	public void send(String topic, T data);
+	public void send(K key, V data);
+
 
 	/**
 	 * 
 	 * @param topic
-	 * @param datas
+	 * @param keyedMessage
 	 */
-	public void send(String topic, List<T> datas);
-
+	public void send(String topic, Map<K, V> keyedMessage);
+	
 	/**
-	 * 根据key的hash规则指定分区发送消息
 	 * 
 	 * @param topic
 	 * @param key
-	 *            消息分区key--默认随机选取一个分区存储
-	 * @param datas
-	 *            消息
+	 * @param keyedMessage
 	 */
-	// public void send(String topic, K key, List<V> datas);
+	public void send(String topic, K key , List<V> keyedMessage);
+
 	
 	/**
 	 * 发布topic
+	 * 
 	 * @param topic
 	 */
 	public void publishTopic(String topic);

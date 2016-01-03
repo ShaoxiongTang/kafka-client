@@ -18,5 +18,5 @@ public interface MessageSeesionFactory {
 	 * 创建生产者
 	 * @return
 	 */
-	public MessageProducer<?> createProducer();
+	public MessageProducer<?, ?> createProducer();
 }

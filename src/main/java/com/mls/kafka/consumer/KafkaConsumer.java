@@ -11,6 +11,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 import com.mls.kafka.demo.MerchantMsg;
+import com.mls.kafka.message.MessageDecoder;
 import com.mls.kafka.util.ConfigUtil;
 
 import kafka.consumer.Consumer;
@@ -53,14 +54,14 @@ public class KafkaConsumer {
 		// topics.put(topic, consumerZookeeper.partitiomMap.get(topic).size());
 		topics.put(topic, 3);
 		StringDecoder decoder = new StringDecoder(new VerifiableProperties());
-		Map<String, List<KafkaStream<String, String>>> streams = connector.createMessageStreams(topics, decoder, decoder);
-		List<KafkaStream<String, String>> partitions = streams.get(topic);
+		Map<String, List<KafkaStream<byte[], byte[]>>> streams = connector.createMessageStreams(topics);
+		List<KafkaStream<byte[], byte[]>> partitions = streams.get(topic);
 		// threadPool =
 		// Executors.newFixedThreadPool(consumerZookeeper.partitiomMap.get(topic).size()
 		// * workerCountPerPartition);
 		threadPool = Executors.newFixedThreadPool(3 * 1);
 
-		for (KafkaStream<String, String> partition : partitions) {
+		for (KafkaStream<byte[], byte[]> partition : partitions) {
 			threadPool.execute(new MessageRunner(partition));
 		}
 	}
@@ -80,19 +81,19 @@ public class KafkaConsumer {
 	}
 
 	class MessageRunner implements Runnable {
-		private KafkaStream<String, String> partition;
+		private KafkaStream<byte[], byte[]> partition;
 
-		MessageRunner(KafkaStream<String, String> partition) {
+		MessageRunner(KafkaStream<byte[], byte[]> partition) {
 			this.partition = partition;
 		}
 
 		public void run() {
-			ConsumerIterator<String, String> it = partition.iterator();
+			ConsumerIterator<byte[], byte[]> it = partition.iterator();
 			while (it.hasNext()) {
 				// connector.commitOffsets();手动提交offset,当autocommit.enable=false时使用
-				MessageAndMetadata<String, String> item = it.next();
+				MessageAndMetadata<byte[], byte[]> item = it.next();
 				try {
-					executor.execute(item.message());// UTF-8,注意异常
+					executor.execute(MessageDecoder.fromBytes(item.message()));// UTF-8,注意异常
 				} catch (Exception e) {
 					//
 				}

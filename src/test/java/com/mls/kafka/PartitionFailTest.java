@@ -14,7 +14,7 @@ import junit.framework.TestCase;
 public class PartitionFailTest extends TestCase {
 	KafkaClientConfig clientConfig ;
 	SimpleMessageSeesionFactory seesionFactory;
-	SimpleMessageProducer<MerchantMsg> producer;
+	SimpleMessageProducer<Integer, MerchantMsg> producer;
 	ProducerZookeeper producerZookeeper;
 
 	@Override
@@ -31,12 +31,13 @@ public class PartitionFailTest extends TestCase {
 	}
 
 	public void testPartition() {
-		SimpleMessageProducer<MerchantMsg> producer = 
-				new SimpleMessageProducer<MerchantMsg>("merchantaccount2", new MerchantAccountPartitioner(),producerZookeeper);
+		SimpleMessageProducer<Integer,MerchantMsg> producer = 
+				new SimpleMessageProducer<Integer,MerchantMsg>("merchantaccount2", new MerchantAccountPartitioner(), producerZookeeper);
 		int i = 0;
 		while (true) {
 			try {
-				producer.send(new MerchantMsg(i));
+				MerchantMsg msg = new MerchantMsg(i);
+				producer.send(msg.getKey(), msg);
 				i ++ ;
 				try {
 					Thread.sleep(1000);

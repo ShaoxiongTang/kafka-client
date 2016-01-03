@@ -10,7 +10,7 @@ import kafka.producer.Partitioner;
 import kafka.serializer.StringDecoder;
 import kafka.utils.VerifiableProperties;
 
-public class SimpleMessageProducer<K,V> implements MessageProducer<K,V> {
+public class SimpleMessageProducer<K, V> implements MessageProducer<K, V> {
 	public ProducerZookeeper producerZookeeper;
 	public String topic;
 	public Partitioner<K> partitioner;
@@ -18,10 +18,11 @@ public class SimpleMessageProducer<K,V> implements MessageProducer<K,V> {
 	protected StringDecoder decoder = new StringDecoder(new VerifiableProperties());
 
 	public SimpleMessageProducer(String topic, Partitioner<K> partitioner, ProducerZookeeper producerZookeeper) {
+		super();
+		this.producerZookeeper = producerZookeeper;
 		this.topic = topic;
 		this.partitioner = partitioner;
-		this.producerZookeeper = producerZookeeper;
-		this.innerProducer = new Producer<K, V>(producerZookeeper.buildProducerConfig(partitioner));
+		innerProducer = new Producer<K, V>(producerZookeeper.buildProducerConfig(partitioner));
 	}
 
 	public void send(K key, V message) {
@@ -39,7 +40,7 @@ public class SimpleMessageProducer<K,V> implements MessageProducer<K,V> {
 		if (messages.isEmpty()) {
 			return;
 		}
-		List<KeyedMessage<K,V>> kms = new ArrayList<KeyedMessage<K, V>>();
+		List<KeyedMessage<K, V>> kms = new ArrayList<KeyedMessage<K, V>>();
 		int i = 0;
 		for (V entry : messages) {
 			KeyedMessage<K, V> km = new KeyedMessage<K, V>(topic, key, entry);

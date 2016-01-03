@@ -7,6 +7,8 @@ import org.I0Itec.zkclient.ZkClient;
 import org.apache.log4j.Logger;
 
 import com.mls.kafka.config.KafkaClientConfig;
+import com.mls.kafka.message.KeyEncoder;
+import com.mls.kafka.message.MessageEncoder;
 import com.mls.kafka.support.BrokerInfo;
 import com.mls.kafka.util.ZkUtils;
 
@@ -39,7 +41,8 @@ public class ProducerZookeeper {
 		if (partitioner !=null ){
 			producerProperties.put("partitioner.class", partitioner.getClass().getName());
 		}
-		//producerProperties.put("serializer.class", "kafka.serializer.StringEncoder");
+		producerProperties.put("key.serializer.class", KeyEncoder.class.getName());
+		producerProperties.put("serializer.class", MessageEncoder.class.getName());
 		System.out.println("producerProperties is [" + producerProperties + "]");
 		return new ProducerConfig(producerProperties);
 	}
